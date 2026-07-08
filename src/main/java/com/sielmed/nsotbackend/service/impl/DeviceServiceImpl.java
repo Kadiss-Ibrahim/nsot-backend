@@ -1,5 +1,10 @@
 package com.sielmed.nsotbackend.service.impl;
 
+import com.sielmed.nsotbackend.dto.DeviceRequestDTO;
+import com.sielmed.nsotbackend.dto.DeviceResponseDTO;
+import com.sielmed.nsotbackend.dto.DeviceRoleResponseDTO;
+import com.sielmed.nsotbackend.dto.ManufacturerResponseDTO;
+import com.sielmed.nsotbackend.dto.SiteResponseDTO;
 import com.sielmed.nsotbackend.entity.Device;
 import com.sielmed.nsotbackend.entity.DeviceRole;
 import com.sielmed.nsotbackend.entity.Manufacturer;
@@ -16,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,62 +33,76 @@ public class DeviceServiceImpl implements DeviceService {
     private final ManufacturerService manufacturerService;
 
     @Override
-    public List<Device> findAll() {
-        return deviceRepository.findAll();
+    public List<DeviceResponseDTO> findAll() {
+        return deviceRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Device findById(Long id) {
-        return deviceRepository.findById(id)
+    public DeviceResponseDTO findById(Long id) {
+        Device device = deviceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Device", id));
+        return toResponseDTO(device);
     }
 
     @Override
-    public Device create(Device device) {
-        if (deviceRepository.existsByHostname(device.getHostname())) {
+    public DeviceResponseDTO create(DeviceRequestDTO requestDTO) {
+        if (deviceRepository.existsByHostname(requestDTO.getHostname())) {
             throw new DuplicateResourceException(
-                    "Un device avec ce hostname existe déjà : " + device.getHostname());
+                    "Un device avec ce hostname existe déjà : " + requestDTO.getHostname());
         }
 
-        Site site = siteService.findById(device.getSite().getId());
-        DeviceRole role = deviceRoleService.findById(device.getDeviceRole().getId());
-        Manufacturer manufacturer = manufacturerService.findById(device.getManufacturer().getId());
+        Device device = new Device();
+        device.setHostname(requestDTO.getHostname());
+        device.setModel(requestDTO.getModel());
+        device.setSerialNumber(requestDTO.getSerialNumber());
+        device.setManagementIp(requestDTO.getManagementIp());
+        device.setOs(requestDTO.getOs());
+        device.setCurrentVersion(requestDTO.getCurrentVersion());
+        device.setRack(requestDTO.getRack());
+        device.setRackPosition(requestDTO.getRackPosition());
+        device.setStatus(requestDTO.getStatus());
+        device.setCriticality(requestDTO.getCriticality());
+        device.setOwner(requestDTO.getOwner());
+        device.setLastReview(requestDTO.getLastReview());
 
-        device.setSite(site);
-        device.setDeviceRole(role);
-        device.setManufacturer(manufacturer);
+        device.setSite(toEntitySite(siteService.findById(requestDTO.getSiteId())));
+        device.setDeviceRole(toEntityDeviceRole(deviceRoleService.findById(requestDTO.getDeviceRoleId())));
+        device.setManufacturer(toEntityManufacturer(manufacturerService.findById(requestDTO.getManufacturerId())));
 
-        return deviceRepository.save(device);
+        return toResponseDTO(deviceRepository.save(device));
     }
 
     @Override
-    public Device update(Long id, Device updated) {
-        Device existing = findById(id);
+    public DeviceResponseDTO update(Long id, DeviceRequestDTO requestDTO) {
+        Device existing = deviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Device", id));
 
-        existing.setHostname(updated.getHostname());
-        existing.setModel(updated.getModel());
-        existing.setSerialNumber(updated.getSerialNumber());
-        existing.setManagementIp(updated.getManagementIp());
-        existing.setOs(updated.getOs());
-        existing.setCurrentVersion(updated.getCurrentVersion());
-        existing.setRack(updated.getRack());
-        existing.setRackPosition(updated.getRackPosition());
-        existing.setStatus(updated.getStatus());
-        existing.setCriticality(updated.getCriticality());
-        existing.setOwner(updated.getOwner());
-        existing.setLastReview(updated.getLastReview());
+        existing.setHostname(requestDTO.getHostname());
+        existing.setModel(requestDTO.getModel());
+        existing.setSerialNumber(requestDTO.getSerialNumber());
+        existing.setManagementIp(requestDTO.getManagementIp());
+        existing.setOs(requestDTO.getOs());
+        existing.setCurrentVersion(requestDTO.getCurrentVersion());
+        existing.setRack(requestDTO.getRack());
+        existing.setRackPosition(requestDTO.getRackPosition());
+        existing.setStatus(requestDTO.getStatus());
+        existing.setCriticality(requestDTO.getCriticality());
+        existing.setOwner(requestDTO.getOwner());
+        existing.setLastReview(requestDTO.getLastReview());
 
-        if (updated.getSite() != null) {
-            existing.setSite(siteService.findById(updated.getSite().getId()));
+        if (requestDTO.getSiteId() != null) {
+            existing.setSite(toEntitySite(siteService.findById(requestDTO.getSiteId())));
         }
-        if (updated.getDeviceRole() != null) {
-            existing.setDeviceRole(deviceRoleService.findById(updated.getDeviceRole().getId()));
+        if (requestDTO.getDeviceRoleId() != null) {
+            existing.setDeviceRole(toEntityDeviceRole(deviceRoleService.findById(requestDTO.getDeviceRoleId())));
         }
-        if (updated.getManufacturer() != null) {
-            existing.setManufacturer(manufacturerService.findById(updated.getManufacturer().getId()));
+        if (requestDTO.getManufacturerId() != null) {
+            existing.setManufacturer(toEntityManufacturer(manufacturerService.findById(requestDTO.getManufacturerId())));
         }
 
-        return deviceRepository.save(existing);
+        return toResponseDTO(deviceRepository.save(existing));
     }
 
     @Override
@@ -94,7 +114,77 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
-    public List<Device> search(String hostname, Long siteId, Status status) {
-        return deviceRepository.search(hostname, siteId, status);
+    public List<DeviceResponseDTO> search(String hostname, Long siteId, Status status) {
+        return deviceRepository.search(hostname, siteId, status).stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private DeviceResponseDTO toResponseDTO(Device device) {
+        return new DeviceResponseDTO(
+                device.getId(),
+                device.getHostname(),
+                toSiteResponseDTO(device.getSite()),
+                toDeviceRoleResponseDTO(device.getDeviceRole()),
+                toManufacturerResponseDTO(device.getManufacturer()),
+                device.getModel(),
+                device.getSerialNumber(),
+                device.getManagementIp(),
+                device.getOs(),
+                device.getCurrentVersion(),
+                device.getRack(),
+                device.getRackPosition(),
+                device.getStatus(),
+                device.getCriticality(),
+                device.getOwner(),
+                device.getLastReview(),
+                device.getCreatedAt(),
+                device.getUpdatedAt()
+        );
+    }
+
+    private SiteResponseDTO toSiteResponseDTO(Site site) {
+        return site == null ? null : new SiteResponseDTO(site.getId(), site.getNom(), site.getVille(), site.getPays(), site.getResponsable());
+    }
+
+    private DeviceRoleResponseDTO toDeviceRoleResponseDTO(DeviceRole deviceRole) {
+        return deviceRole == null ? null : new DeviceRoleResponseDTO(deviceRole.getId(), deviceRole.getNom());
+    }
+
+    private ManufacturerResponseDTO toManufacturerResponseDTO(Manufacturer manufacturer) {
+        return manufacturer == null ? null : new ManufacturerResponseDTO(manufacturer.getId(), manufacturer.getNom());
+    }
+
+    private Site toEntitySite(SiteResponseDTO siteResponseDTO) {
+        if (siteResponseDTO == null) {
+            return null;
+        }
+        Site site = new Site();
+        site.setId(siteResponseDTO.getId());
+        site.setNom(siteResponseDTO.getNom());
+        site.setVille(siteResponseDTO.getVille());
+        site.setPays(siteResponseDTO.getPays());
+        site.setResponsable(siteResponseDTO.getResponsable());
+        return site;
+    }
+
+    private DeviceRole toEntityDeviceRole(DeviceRoleResponseDTO deviceRoleResponseDTO) {
+        if (deviceRoleResponseDTO == null) {
+            return null;
+        }
+        DeviceRole deviceRole = new DeviceRole();
+        deviceRole.setId(deviceRoleResponseDTO.getId());
+        deviceRole.setNom(deviceRoleResponseDTO.getNom());
+        return deviceRole;
+    }
+
+    private Manufacturer toEntityManufacturer(ManufacturerResponseDTO manufacturerResponseDTO) {
+        if (manufacturerResponseDTO == null) {
+            return null;
+        }
+        Manufacturer manufacturer = new Manufacturer();
+        manufacturer.setId(manufacturerResponseDTO.getId());
+        manufacturer.setNom(manufacturerResponseDTO.getNom());
+        return manufacturer;
     }
 }

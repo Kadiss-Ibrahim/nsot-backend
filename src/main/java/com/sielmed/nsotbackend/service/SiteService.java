@@ -1,13 +1,14 @@
 package com.sielmed.nsotbackend.service;
 
-import com.sielmed.nsotbackend.entity.Site;
+import com.sielmed.nsotbackend.dto.SiteRequestDTO;
+import com.sielmed.nsotbackend.dto.SiteResponseDTO;
 
 import java.util.List;
 
 public interface SiteService {
-    List<Site> findAll();
-    Site findById(Long id);
-    Site create(Site site);
-    Site update(Long id, Site updated);
+    List<SiteResponseDTO> findAll();
+    SiteResponseDTO findById(Long id);
+    SiteResponseDTO create(SiteRequestDTO requestDTO);
+    SiteResponseDTO update(Long id, SiteRequestDTO requestDTO);
     void delete(Long id);
 }

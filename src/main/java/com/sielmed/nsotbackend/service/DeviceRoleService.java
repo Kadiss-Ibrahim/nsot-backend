@@ -1,13 +1,14 @@
 package com.sielmed.nsotbackend.service;
 
-import com.sielmed.nsotbackend.entity.DeviceRole;
+import com.sielmed.nsotbackend.dto.DeviceRoleRequestDTO;
+import com.sielmed.nsotbackend.dto.DeviceRoleResponseDTO;
 
 import java.util.List;
 
 public interface DeviceRoleService {
-    List<DeviceRole> findAll();
-    DeviceRole findById(Long id);
-    DeviceRole create(DeviceRole deviceRole);
-    DeviceRole update(Long id, DeviceRole updated);
+    List<DeviceRoleResponseDTO> findAll();
+    DeviceRoleResponseDTO findById(Long id);
+    DeviceRoleResponseDTO create(DeviceRoleRequestDTO requestDTO);
+    DeviceRoleResponseDTO update(Long id, DeviceRoleRequestDTO requestDTO);
     void delete(Long id);
 }

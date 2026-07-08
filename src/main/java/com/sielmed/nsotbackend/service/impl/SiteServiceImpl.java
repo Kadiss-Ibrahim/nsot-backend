@@ -1,5 +1,7 @@
 package com.sielmed.nsotbackend.service.impl;
 
+import com.sielmed.nsotbackend.dto.SiteRequestDTO;
+import com.sielmed.nsotbackend.dto.SiteResponseDTO;
 import com.sielmed.nsotbackend.entity.Site;
 import com.sielmed.nsotbackend.exception.ResourceNotFoundException;
 import com.sielmed.nsotbackend.repository.SiteRepository;
@@ -8,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -16,29 +19,38 @@ public class SiteServiceImpl implements SiteService {
     private final SiteRepository siteRepository;
 
     @Override
-    public List<Site> findAll() {
-        return siteRepository.findAll();
+    public List<SiteResponseDTO> findAll() {
+        return siteRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Site findById(Long id) {
-        return siteRepository.findById(id)
+    public SiteResponseDTO findById(Long id) {
+        Site site = siteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site", id));
+        return toResponseDTO(site);
     }
 
     @Override
-    public Site create(Site site) {
-        return siteRepository.save(site);
+    public SiteResponseDTO create(SiteRequestDTO requestDTO) {
+        Site site = new Site();
+        site.setNom(requestDTO.getNom());
+        site.setVille(requestDTO.getVille());
+        site.setPays(requestDTO.getPays());
+        site.setResponsable(requestDTO.getResponsable());
+        return toResponseDTO(siteRepository.save(site));
     }
 
     @Override
-    public Site update(Long id, Site updated) {
-        Site existing = findById(id);
-        existing.setNom(updated.getNom());
-        existing.setVille(updated.getVille());
-        existing.setPays(updated.getPays());
-        existing.setResponsable(updated.getResponsable());
-        return siteRepository.save(existing);
+    public SiteResponseDTO update(Long id, SiteRequestDTO requestDTO) {
+        Site existing = siteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Site", id));
+        existing.setNom(requestDTO.getNom());
+        existing.setVille(requestDTO.getVille());
+        existing.setPays(requestDTO.getPays());
+        existing.setResponsable(requestDTO.getResponsable());
+        return toResponseDTO(siteRepository.save(existing));
     }
 
     @Override
@@ -47,5 +59,9 @@ public class SiteServiceImpl implements SiteService {
             throw new ResourceNotFoundException("Site", id);
         }
         siteRepository.deleteById(id);
+    }
+
+    private SiteResponseDTO toResponseDTO(Site site) {
+        return new SiteResponseDTO(site.getId(), site.getNom(), site.getVille(), site.getPays(), site.getResponsable());
     }
 }

@@ -1,5 +1,7 @@
 package com.sielmed.nsotbackend.service.impl;
 
+import com.sielmed.nsotbackend.dto.UserRequestDTO;
+import com.sielmed.nsotbackend.dto.UserResponseDTO;
 import com.sielmed.nsotbackend.entity.User;
 import com.sielmed.nsotbackend.exception.DuplicateResourceException;
 import com.sielmed.nsotbackend.exception.ResourceNotFoundException;
@@ -10,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,44 +22,49 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<UserResponseDTO> findAll() {
+        return userRepository.findAll().stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public User findById(Long id) {
-        return userRepository.findById(id)
+    public UserResponseDTO findById(Long id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        return toResponseDTO(user);
     }
 
     @Override
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username)
+    public UserResponseDTO findByUsername(String username) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User introuvable avec le username : " + username));
+        return toResponseDTO(user);
     }
 
     @Override
-    public User create(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
+    public UserResponseDTO create(UserRequestDTO requestDTO) {
+        if (userRepository.existsByUsername(requestDTO.getUsername())) {
             throw new DuplicateResourceException(
-                    "Un utilisateur avec ce username existe déjà : " + user.getUsername());
+                    "Un utilisateur avec ce username existe déjà : " + requestDTO.getUsername());
         }
-        // Le mot de passe ne doit JAMAIS être stocké en clair
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+        User user = new User();
+        user.setUsername(requestDTO.getUsername());
+        user.setRole(requestDTO.getRole());
+        user.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
+        return toResponseDTO(userRepository.save(user));
     }
 
     @Override
-    public User update(Long id, User updated) {
-        User existing = findById(id);
-        existing.setUsername(updated.getUsername());
-        existing.setRole(updated.getRole());
-        // Le mot de passe n'est mis à jour QUE s'il est fourni, pour éviter d'écraser
-        // le hash existant par un champ vide envoyé depuis un formulaire d'édition.
-        if (updated.getPassword() != null && !updated.getPassword().isBlank()) {
-            existing.setPassword(passwordEncoder.encode(updated.getPassword()));
+    public UserResponseDTO update(Long id, UserRequestDTO requestDTO) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        existing.setUsername(requestDTO.getUsername());
+        existing.setRole(requestDTO.getRole());
+        if (requestDTO.getPassword() != null && !requestDTO.getPassword().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(requestDTO.getPassword()));
         }
-        return userRepository.save(existing);
+        return toResponseDTO(userRepository.save(existing));
     }
 
     @Override
@@ -65,5 +73,9 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("User", id);
         }
         userRepository.deleteById(id);
+    }
+
+    private UserResponseDTO toResponseDTO(User user) {
+        return new UserResponseDTO(user.getId(), user.getUsername(), user.getRole(), user.getCreatedAt());
     }
 }
