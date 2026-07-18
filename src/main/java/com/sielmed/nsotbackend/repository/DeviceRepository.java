@@ -12,6 +12,9 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
     Optional<Device> findByHostname(String hostname);
 
     boolean existsByHostname(String hostname);
+    boolean existsByManufacturerId(Long manufacturerId);
+    boolean existsBySiteId(Long siteId);
+    boolean existsByDeviceRoleId(Long deviceRoleId);
 
     List<Device> findBySiteId(Long siteId);
 

@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +35,7 @@ public class DeviceServiceImpl implements DeviceService {
     public List<DeviceResponseDTO> findAll() {
         return deviceRepository.findAll().stream()
                 .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+                        .toList();
     }
 
     @Override
@@ -117,7 +116,7 @@ public class DeviceServiceImpl implements DeviceService {
     public List<DeviceResponseDTO> search(String hostname, Long siteId, Status status) {
         return deviceRepository.search(hostname, siteId, status).stream()
                 .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+                        .toList();
     }
 
     private DeviceResponseDTO toResponseDTO(Device device) {

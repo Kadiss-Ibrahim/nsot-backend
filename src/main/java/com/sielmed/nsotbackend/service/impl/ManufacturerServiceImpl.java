@@ -4,26 +4,28 @@ import com.sielmed.nsotbackend.dto.ManufacturerRequestDTO;
 import com.sielmed.nsotbackend.dto.ManufacturerResponseDTO;
 import com.sielmed.nsotbackend.entity.Manufacturer;
 import com.sielmed.nsotbackend.exception.DuplicateResourceException;
+import com.sielmed.nsotbackend.exception.ResourceInUseException;
 import com.sielmed.nsotbackend.exception.ResourceNotFoundException;
+import com.sielmed.nsotbackend.repository.DeviceRepository;
 import com.sielmed.nsotbackend.repository.ManufacturerRepository;
 import com.sielmed.nsotbackend.service.ManufacturerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ManufacturerServiceImpl implements ManufacturerService {
 
     private final ManufacturerRepository manufacturerRepository;
+    private final DeviceRepository deviceRepository;
 
     @Override
     public List<ManufacturerResponseDTO> findAll() {
         return manufacturerRepository.findAll().stream()
                 .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -56,6 +58,11 @@ public class ManufacturerServiceImpl implements ManufacturerService {
     public void delete(Long id) {
         if (!manufacturerRepository.existsById(id)) {
             throw new ResourceNotFoundException("Manufacturer", id);
+        }
+        if (deviceRepository.existsByManufacturerId(id)) {
+            throw new ResourceInUseException(
+                    "Impossible de supprimer ce manufacturer : il est encore utilisé par au moins un device."
+            );
         }
         manufacturerRepository.deleteById(id);
     }
