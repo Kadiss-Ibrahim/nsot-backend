@@ -74,6 +74,13 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 
+    @Override
+    public List<UserResponseDTO> search(String username, com.sielmed.nsotbackend.enums.Role role) {
+        return userRepository.search(username, role).stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+
     private UserResponseDTO toResponseDTO(User user) {
         return new UserResponseDTO(user.getId(), user.getUsername(), user.getRole(), user.getCreatedAt());
     }

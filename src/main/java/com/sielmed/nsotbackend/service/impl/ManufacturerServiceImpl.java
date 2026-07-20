@@ -67,6 +67,14 @@ public class ManufacturerServiceImpl implements ManufacturerService {
         manufacturerRepository.deleteById(id);
     }
 
+    @Override
+    public List<ManufacturerResponseDTO> search(String nom) {
+        return manufacturerRepository.search(nom)
+                .stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+
     private ManufacturerResponseDTO toResponseDTO(Manufacturer manufacturer) {
         return new ManufacturerResponseDTO(manufacturer.getId(), manufacturer.getNom());
     }

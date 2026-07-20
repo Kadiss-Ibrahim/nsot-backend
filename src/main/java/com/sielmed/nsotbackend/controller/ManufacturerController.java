@@ -46,4 +46,11 @@ public class ManufacturerController {
         manufacturerService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ManufacturerResponseDTO>> search(
+            @RequestParam(required = false) String nom){
+        return ResponseEntity.ok(manufacturerService.search(nom));
+    }
+
 }

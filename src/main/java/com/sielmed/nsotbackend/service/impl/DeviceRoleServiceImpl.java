@@ -67,6 +67,13 @@ public class DeviceRoleServiceImpl implements DeviceRoleService {
         deviceRoleRepository.deleteById(id);
     }
 
+    @Override
+    public List<DeviceRoleResponseDTO> search(String nom) {
+        return deviceRoleRepository.search(nom).stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+
     private DeviceRoleResponseDTO toResponseDTO(DeviceRole deviceRole) {
         return new DeviceRoleResponseDTO(deviceRole.getId(), deviceRole.getNom());
     }

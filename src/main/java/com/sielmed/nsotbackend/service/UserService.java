@@ -12,4 +12,5 @@ public interface UserService {
     UserResponseDTO create(UserRequestDTO requestDTO);
     UserResponseDTO update(Long id, UserRequestDTO requestDTO);
     void delete(Long id);
+    List<UserResponseDTO> search(String username, com.sielmed.nsotbackend.enums.Role role);
 }

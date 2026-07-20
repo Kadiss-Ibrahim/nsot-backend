@@ -45,4 +45,10 @@ public class DeviceRoleController {
         deviceRoleService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<DeviceRoleResponseDTO>> search(
+            @RequestParam(required = false) String nom) {
+        return ResponseEntity.ok(deviceRoleService.search(nom));
+    }
 }

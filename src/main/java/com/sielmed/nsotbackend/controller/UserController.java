@@ -45,4 +45,11 @@ public class UserController {
         userService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<UserResponseDTO>> search(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) com.sielmed.nsotbackend.enums.Role role) {
+        return ResponseEntity.ok(userService.search(username, role));
+    }
 }

@@ -68,6 +68,13 @@ public class SiteServiceImpl implements SiteService {
         siteRepository.deleteById(id);
     }
 
+    @Override
+    public List<SiteResponseDTO> search(String nom, String ville) {
+        return siteRepository.search(nom, ville).stream()
+                .map(this::toResponseDTO)
+                .toList();
+    }
+
     private SiteResponseDTO toResponseDTO(Site site) {
         return new SiteResponseDTO(site.getId(), site.getNom(), site.getVille(), site.getPays(), site.getResponsable());
     }

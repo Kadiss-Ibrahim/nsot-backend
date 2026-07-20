@@ -45,4 +45,11 @@ public class SiteController {
         siteService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<SiteResponseDTO>> search(
+            @RequestParam(required = false) String nom,
+            @RequestParam(required = false) String ville) {
+        return ResponseEntity.ok(siteService.search(nom, ville));
+    }
 }
