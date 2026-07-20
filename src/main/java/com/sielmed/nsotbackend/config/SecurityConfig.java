@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**", "/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/devices/export/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/devices/export/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
