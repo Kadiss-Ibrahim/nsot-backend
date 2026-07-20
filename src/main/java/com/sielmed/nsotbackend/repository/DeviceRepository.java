@@ -1,6 +1,7 @@
 package com.sielmed.nsotbackend.repository;
 
 import com.sielmed.nsotbackend.entity.Device;
+import com.sielmed.nsotbackend.enums.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,13 +23,19 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     List<Device> findByManufacturerId(Long manufacturerId);
 
-    // Recherche multi-critères simple (module "Devices + recherche" prévu semaine 4)
+
     @Query("SELECT d FROM Device d WHERE " +
-            "(:hostname IS NULL OR LOWER(d.hostname) LIKE LOWER(CONCAT('%', :hostname, '%'))) AND " +
+            "(:hostname IS NULL OR LOWER(d.hostname) LIKE LOWER(CONCAT('%', CAST(:hostname AS string), '%'))) AND " +
+            "(:managementIp IS NULL OR LOWER(d.managementIp) LIKE LOWER(CONCAT('%', CAST(:managementIp AS string), '%'))) AND " +
+            "(:serialNumber IS NULL OR LOWER(d.serialNumber) LIKE LOWER(CONCAT('%', CAST(:serialNumber AS string), '%'))) AND " +
+            "(:model IS NULL OR LOWER(d.model) LIKE LOWER(CONCAT('%', CAST(:model AS string), '%'))) AND " +
             "(:siteId IS NULL OR d.site.id = :siteId) AND " +
             "(:status IS NULL OR d.status = :status)")
     List<Device> search(@Param("hostname") String hostname,
+                        @Param("managementIp") String managementIp,
+                        @Param("serialNumber") String serialNumber,
+                        @Param("model") String model,
                         @Param("siteId") Long siteId,
-                        @Param("status") com.sielmed.nsotbackend.enums.Status status);
+                        @Param("status") Status status);
 
 }

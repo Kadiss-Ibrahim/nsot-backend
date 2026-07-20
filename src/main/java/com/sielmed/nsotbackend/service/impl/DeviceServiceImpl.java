@@ -113,10 +113,11 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
-    public List<DeviceResponseDTO> search(String hostname, Long siteId, Status status) {
-        return deviceRepository.search(hostname, siteId, status).stream()
+    public List<DeviceResponseDTO> search(String hostname, String managementIp, String serialNumber, String model, Long siteId, Status status) {
+        return deviceRepository.search(hostname, managementIp, serialNumber, model, siteId, status)
+                .stream()
                 .map(this::toResponseDTO)
-                        .toList();
+                .toList();
     }
 
     private DeviceResponseDTO toResponseDTO(Device device) {

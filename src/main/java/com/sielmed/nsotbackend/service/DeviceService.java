@@ -12,5 +12,5 @@ public interface DeviceService {
     DeviceResponseDTO create(DeviceRequestDTO requestDTO);
     DeviceResponseDTO update(Long id, DeviceRequestDTO requestDTO);
     void delete(Long id);
-    List<DeviceResponseDTO> search(String hostname, Long siteId, Status status);
+    List<DeviceResponseDTO> search(String hostname, String managementIp, String serialNumber, String model, Long siteId, Status status );
 }

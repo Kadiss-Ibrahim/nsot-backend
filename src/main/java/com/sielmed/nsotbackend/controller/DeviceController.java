@@ -47,12 +47,14 @@ public class DeviceController {
         return ResponseEntity.noContent().build();
     }
 
-    // GET /api/v1/devices/search?hostname=xxx&siteId=1&status=PRODUCTION
     @GetMapping("/search")
     public ResponseEntity<List<DeviceResponseDTO>> search(
             @RequestParam(required = false) String hostname,
+            @RequestParam(required = false) String managementIp,
+            @RequestParam(required = false) String serialNumber,
+            @RequestParam(required = false) String model,
             @RequestParam(required = false) Long siteId,
-            @RequestParam(required = false) Status status) {
-        return ResponseEntity.ok(deviceService.search(hostname, siteId, status));
+            @RequestParam(required = false) Status status){
+        return ResponseEntity.ok(deviceService.search(hostname, managementIp, serialNumber, model, siteId, status));
     }
 }
