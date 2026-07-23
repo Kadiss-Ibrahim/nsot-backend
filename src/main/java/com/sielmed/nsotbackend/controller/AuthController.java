@@ -2,6 +2,7 @@ package com.sielmed.nsotbackend.controller;
 
 import com.sielmed.nsotbackend.dto.LoginRequestDTO;
 import com.sielmed.nsotbackend.dto.LoginResponseDTO;
+import com.sielmed.nsotbackend.dto.RefreshTokenRequestDTO;
 import com.sielmed.nsotbackend.entity.User;
 import com.sielmed.nsotbackend.repository.UserRepository;
 import com.sielmed.nsotbackend.util.JwtUtil;
@@ -27,17 +28,39 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
-        User user = userRepository.findByUsername(loginRequest.getUsername())
-                .orElse(null);
+        User user = userRepository.findByUsername(loginRequest.getUsername()).orElse(null);
 
         if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new LoginResponseDTO(null, null, "Invalid username or password"));
+                    .body(new LoginResponseDTO(null, null, null, "Invalid username or password"));
         }
 
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        String accessToken = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername(), user.getRole().name());
 
-        return ResponseEntity.ok(new LoginResponseDTO(token, user.getUsername(), "Login successful"));
+        return ResponseEntity.ok(new LoginResponseDTO(accessToken, refreshToken, user.getUsername(), "Login successful"));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody RefreshTokenRequestDTO request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!jwtUtil.isTokenValid(refreshToken) || jwtUtil.isTokenExpired(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginResponseDTO(null, null, null, "Refresh token invalide ou expiré"));
+        }
+
+        if (!"refresh".equals(jwtUtil.extractTokenType(refreshToken))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginResponseDTO(null, null, null, "Token invalide pour cette opération"));
+        }
+
+        String username = jwtUtil.extractUsername(refreshToken);
+        String role = jwtUtil.extractRole(refreshToken);
+
+        String newAccessToken = jwtUtil.generateToken(username, role);
+
+        return ResponseEntity.ok(new LoginResponseDTO(newAccessToken, refreshToken, username, "Token rafraîchi"));
     }
 
 }
