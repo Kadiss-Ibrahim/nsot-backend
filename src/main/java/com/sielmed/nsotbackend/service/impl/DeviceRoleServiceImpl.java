@@ -4,26 +4,28 @@ import com.sielmed.nsotbackend.dto.DeviceRoleRequestDTO;
 import com.sielmed.nsotbackend.dto.DeviceRoleResponseDTO;
 import com.sielmed.nsotbackend.entity.DeviceRole;
 import com.sielmed.nsotbackend.exception.DuplicateResourceException;
+import com.sielmed.nsotbackend.exception.ResourceInUseException;
 import com.sielmed.nsotbackend.exception.ResourceNotFoundException;
+import com.sielmed.nsotbackend.repository.DeviceRepository;
 import com.sielmed.nsotbackend.repository.DeviceRoleRepository;
 import com.sielmed.nsotbackend.service.DeviceRoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DeviceRoleServiceImpl implements DeviceRoleService {
 
     private final DeviceRoleRepository deviceRoleRepository;
+    private final DeviceRepository deviceRepository;
 
     @Override
     public List<DeviceRoleResponseDTO> findAll() {
         return deviceRoleRepository.findAll().stream()
                 .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -57,7 +59,19 @@ public class DeviceRoleServiceImpl implements DeviceRoleService {
         if (!deviceRoleRepository.existsById(id)) {
             throw new ResourceNotFoundException("DeviceRole", id);
         }
+        if (deviceRepository.existsByDeviceRoleId(id)) {
+            throw new ResourceInUseException(
+                    "Impossible de supprimer ce rôle : il est encore utilisé par au moins un device."
+            );
+        }
         deviceRoleRepository.deleteById(id);
+    }
+
+    @Override
+    public List<DeviceRoleResponseDTO> search(String nom) {
+        return deviceRoleRepository.search(nom).stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     private DeviceRoleResponseDTO toResponseDTO(DeviceRole deviceRole) {

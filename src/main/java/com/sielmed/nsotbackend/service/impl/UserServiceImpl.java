@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +24,7 @@ public class UserServiceImpl implements UserService {
     public List<UserResponseDTO> findAll() {
         return userRepository.findAll().stream()
                 .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -73,6 +72,13 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("User", id);
         }
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public List<UserResponseDTO> search(String username, com.sielmed.nsotbackend.enums.Role role) {
+        return userRepository.search(username, role).stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     private UserResponseDTO toResponseDTO(User user) {

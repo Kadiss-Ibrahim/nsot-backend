@@ -11,4 +11,5 @@ public interface DeviceRoleService {
     DeviceRoleResponseDTO create(DeviceRoleRequestDTO requestDTO);
     DeviceRoleResponseDTO update(Long id, DeviceRoleRequestDTO requestDTO);
     void delete(Long id);
+    List<DeviceRoleResponseDTO> search(String nom);
 }

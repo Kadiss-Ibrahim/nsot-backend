@@ -3,26 +3,28 @@ package com.sielmed.nsotbackend.service.impl;
 import com.sielmed.nsotbackend.dto.SiteRequestDTO;
 import com.sielmed.nsotbackend.dto.SiteResponseDTO;
 import com.sielmed.nsotbackend.entity.Site;
+import com.sielmed.nsotbackend.exception.ResourceInUseException;
 import com.sielmed.nsotbackend.exception.ResourceNotFoundException;
+import com.sielmed.nsotbackend.repository.DeviceRepository;
 import com.sielmed.nsotbackend.repository.SiteRepository;
 import com.sielmed.nsotbackend.service.SiteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class SiteServiceImpl implements SiteService {
 
     private final SiteRepository siteRepository;
+    private final DeviceRepository deviceRepository;
 
     @Override
     public List<SiteResponseDTO> findAll() {
         return siteRepository.findAll().stream()
                 .map(this::toResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -58,7 +60,19 @@ public class SiteServiceImpl implements SiteService {
         if (!siteRepository.existsById(id)) {
             throw new ResourceNotFoundException("Site", id);
         }
+        if (deviceRepository.existsBySiteId(id)) {
+            throw new ResourceInUseException(
+                    "Impossible de supprimer ce site : il est encore utilisé par au moins un device."
+            );
+        }
         siteRepository.deleteById(id);
+    }
+
+    @Override
+    public List<SiteResponseDTO> search(String nom, String ville) {
+        return siteRepository.search(nom, ville).stream()
+                .map(this::toResponseDTO)
+                .toList();
     }
 
     private SiteResponseDTO toResponseDTO(Site site) {

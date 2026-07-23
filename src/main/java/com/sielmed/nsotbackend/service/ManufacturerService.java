@@ -11,4 +11,5 @@ public interface ManufacturerService {
     ManufacturerResponseDTO create(ManufacturerRequestDTO requestDTO);
     ManufacturerResponseDTO update(Long id, ManufacturerRequestDTO requestDTO);
     void delete(Long id);
+    List<ManufacturerResponseDTO> search(String nom);
 }

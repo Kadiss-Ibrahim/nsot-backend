@@ -11,4 +11,5 @@ public interface SiteService {
     SiteResponseDTO create(SiteRequestDTO requestDTO);
     SiteResponseDTO update(Long id, SiteRequestDTO requestDTO);
     void delete(Long id);
+    List<SiteResponseDTO> search(String nom, String ville);
 }
